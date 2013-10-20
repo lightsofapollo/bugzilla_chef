@@ -15,16 +15,35 @@ package 'bzr'
 
 # checkout bugzilla (bmo)
 bash 'checkout bmo' do
+  user 'vagrant'
+  group 'vagrant'
   creates node[:bugzilla_test][:home]
   code "bzr co #{node[:bugzilla_test][:repo]} #{node[:bugzilla_test][:home]}"
 end
 
 # install all the perl modules
 bash 'install perl modules' do
-  code "cd #{node[:bugzilla_test][:home]} && perl install-module.pl --all"
+  cwd node[:bugzilla_test][:home]
+  code "perl install-module.pl --all"
 end
 
+# configure the settings
+template "#{node[:bugzilla_test][:home]}/localconfig" do
+  owner 'vagrant'
+  group 'vagrant'
+  mode '0755'
+  source 'localconfig.erb'
+  variables({
+    :database => node[:bugzilla_test][:database],
+    :database_user => node[:bugzilla_test][:database_user],
+    :database_password => node[:bugzilla_test][:database_password]
+  })
+end
+
+
+
 ### database setup
+include_recipe 'database::mysql'
 
 mysql_connection_info = {
   :host     => 'localhost',
@@ -37,7 +56,7 @@ mysql_database node[:bugzilla_test][:database] do
   action :create
 end
 
-database_user node[:bugzilla_test][:database_user] do
+mysql_database_user node[:bugzilla_test][:database_user] do
   connection mysql_connection_info
   password node[:bugzilla_test][:database_password]
   action :create
