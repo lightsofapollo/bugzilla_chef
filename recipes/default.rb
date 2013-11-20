@@ -1,3 +1,15 @@
+### User Setup
+user node[:bugzilla_test][:user] do
+  supports :manage_home => true
+  action :create
+  home '/home/vagrant'
+  system true
+  shell '/bin/bash'
+end
+
+## ip tables
+include_recipe 'bugzilla_test::iptables'
+
 ## perl setup
 include_recipe 'perl'
 
@@ -35,8 +47,8 @@ include_recipe 'bugzilla_test::perl_modules'
 
 # checkout bugzilla (bmo)
 bash 'checkout bmo' do
-  user 'vagrant'
-  group 'vagrant'
+  user node[:bugzilla_test][:user]
+  group node[:bugzilla_test][:user]
   creates node[:bugzilla_test][:home]
   code "bzr co #{node[:bugzilla_test][:repo]} #{node[:bugzilla_test][:home]}"
 end
@@ -51,8 +63,8 @@ end
   'JSON::RPC'
 ].each do |mod|
   bash "bmo perl module #{mod}" do
-    user 'vagrant'
-    group 'vagrant'
+    user node[:bugzilla_test][:user]
+    group node[:bugzilla_test][:user]
     cwd node[:bugzilla_test][:home]
     creates "lib/#{mod.gsub('::', '/')}"
     code "perl install-module.pl #{mod}"
@@ -61,8 +73,8 @@ end
 
 # configure the settings
 template "#{node[:bugzilla_test][:home]}/localconfig" do
-  owner 'vagrant'
-  group 'vagrant'
+  user node[:bugzilla_test][:user]
+  group node[:bugzilla_test][:user]
   mode '0755'
   source 'localconfig.erb'
   variables({

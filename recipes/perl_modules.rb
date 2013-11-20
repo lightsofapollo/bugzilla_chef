@@ -1,17 +1,14 @@
 include_recipe 'yum::repoforge';
+include_recipe 'perl'
 
 # special crap for imagemagic
 package 'ImageMagick'
 package 'ImageMagick-devel'
 package 'ImageMagick-perl'
+package 'perl(parent)'
 
-include_recipe 'perl'
-package 'mod_perl'
-package 'mod_perl-devel'
-
-# enable the apache module
-apache_module 'perl'
 [
+  'YAML',
   'DateTime',
   'DateTime::TimeZone',
   'Template::Toolkit',
@@ -20,6 +17,7 @@ apache_module 'perl'
   'List::MoreUtils',
   'Math::Random',
   'Tie::IxHash',
+  'Text::Diff',
   'SOAP::Lite',
   'Test::Taint',
   'JSON',
@@ -44,3 +42,8 @@ apache_module 'perl'
     action :install
   end
 end
+
+# enable the apache module & stuff related to apache
+package 'mod_perl'
+package 'mod_perl-devel'
+apache_module 'perl'
